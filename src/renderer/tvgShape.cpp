@@ -249,3 +249,9 @@ FillRule Shape::fillRule() const noexcept
 {
     return CONST_SHAPE(this)->rs.rule;
 }
+
+
+bool Shape::intersects(int32_t x, int32_t y, int32_t w, int32_t h) noexcept
+{
+    return SHAPE(this)->intersects(x, y, w, h);
+}

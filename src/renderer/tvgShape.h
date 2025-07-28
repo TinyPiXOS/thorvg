@@ -234,6 +234,12 @@ struct ShapeImpl : Shape
         return Result::Success;
     }
 
+    bool intersects(int32_t x, int32_t y, int32_t w, int32_t h)
+    {
+        if (w <= 0 || h <= 0 || !impl.renderer || !impl.rd) return false;
+        return impl.renderer->intersects(impl.rd, {x, y, x + w, y + h});
+    }
+
     void strokeFill(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     {
         if (!rs.stroke) rs.stroke = new RenderStroke();

@@ -44,6 +44,7 @@ public:
     const RenderSurface* mainSurface() override;
     bool clear() override;
     bool sync() override;
+    bool intersects(RenderData shape, const RenderRegion& region) override;
     bool target(WGPUDevice device, WGPUInstance instance, void* target, uint32_t width, uint32_t height, int type = 0);
 
     //composition

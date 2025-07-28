@@ -579,6 +579,14 @@ bool WgRenderer::partial(bool disable)
 }
 
 
+bool WgRenderer::intersects(RenderData shape, TVG_UNUSED const RenderRegion& region)
+{
+    if (!shape) return false;
+    TVGLOG("WG_ENGINE", "TODO: intersects()");
+    return false;
+}
+
+
 bool WgRenderer::term()
 {
     if (rendererCnt > 0) return false;

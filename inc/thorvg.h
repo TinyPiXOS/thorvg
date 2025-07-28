@@ -1302,6 +1302,30 @@ public:
     StrokeJoin strokeJoin() const noexcept;
 
     /**
+     * @brief Checks whether a given region intersects the filled area of the shape.
+     *
+     * This function tests whether the specified rectangular region, given as individual integer values
+     * (`x`, `y`, `w`, `h`), intersects the interior (fill area) of the shape. The intersection test 
+     * considers the shape's fill rule (winding or even-odd) and applies to the filled area 
+     * including stroke.
+     *
+     * The shape must be updated in a Canvas beforehand—typically after the Canvas has been
+     * drawn and synchronized.
+     *
+     * @param[in] x The x-coordinate of the top-left corner of the test region.
+     * @param[in] y The y-coordinate of the top-left corner of the test region.
+     * @param[in] w The width of the region to test. Must be greater than 0.
+     * @param[in] h The height of the region to test. Must be greater than 0.
+     *
+     * @return @c true if any part of the region intersects the filled area; otherwise, @c false.
+     *
+     * @note To test a single point, set region size w=1, h=1.
+     * @note For efficiency, the AABB is tested engine side, before performing accurate hit-detection.
+     * @note Experimental API
+     */
+    bool intersects(int32_t x, int32_t y, int32_t w, int32_t h) noexcept;
+
+    /**
      * @brief Gets the stroke miterlimit.
      *
      * @return The stroke miterlimit value when succeed, 4 if no stroke was set.

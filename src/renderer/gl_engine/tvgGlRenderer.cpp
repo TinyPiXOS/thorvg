@@ -1262,6 +1262,14 @@ bool GlRenderer::partial(bool disable)
 }
 
 
+bool GlRenderer::intersects(RenderData shape, TVG_UNUSED const RenderRegion& region)
+{
+    if (!shape) return false;
+    TVGLOG("GL_ENGINE", "TODO: intersects()");
+    return false;
+}
+
+
 bool GlRenderer::term()
 {
     if (rendererCnt > 0) return false;

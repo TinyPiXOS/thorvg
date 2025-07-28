@@ -573,6 +573,14 @@ TVG_API Tvg_Result tvg_shape_get_gradient(const Tvg_Paint* paint, Tvg_Gradient**
     return TVG_RESULT_INVALID_ARGUMENT;
 }
 
+
+TVG_API bool tvg_shape_intersects(Tvg_Paint* paint, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    if (paint) return reinterpret_cast<Shape*>(paint)->intersects(x, y, w, h);
+    return false;
+}
+
+
 /************************************************************************/
 /* Picture API                                                          */
 /************************************************************************/

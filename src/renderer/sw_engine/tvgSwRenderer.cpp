@@ -727,6 +727,19 @@ void SwRenderer::prepare(RenderEffect* effect, const Matrix& transform)
 }
 
 
+bool SwRenderer::intersects(RenderData data, const RenderRegion& region)
+{
+    auto task = static_cast<SwShapeTask*>(data);
+    task->done();
+
+    if (!task->bounds().intersected(region)) return false;
+    if (rleIntersect(task->shape.strokeRle, region)) return true;
+    if (rleIntersect(task->shape.rle, region)) return true;
+
+    return false;
+}
+
+
 bool SwRenderer::region(RenderEffect* effect)
 {
     switch (effect->type) {

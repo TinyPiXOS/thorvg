@@ -52,6 +52,7 @@ public:
     const RenderSurface* mainSurface() override;
     bool clear() override;
     bool sync() override;
+    bool intersects(RenderData shape, const RenderRegion& region) override;
     bool target(pixel_t* data, uint32_t stride, uint32_t w, uint32_t h, ColorSpace cs);
 
     //composition
