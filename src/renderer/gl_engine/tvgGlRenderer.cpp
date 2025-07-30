@@ -1262,11 +1262,14 @@ bool GlRenderer::partial(bool disable)
 }
 
 
-bool GlRenderer::intersects(RenderData shape, TVG_UNUSED const RenderRegion& region)
+bool GlRenderer::intersects(RenderData shape, const RenderRegion& region)
 {
     if (!shape) return false;
-    TVGLOG("GL_ENGINE", "TODO: intersects()");
-    return false;
+    auto sdata = static_cast<GlShape*>(shape);
+    auto bound = sdata->geometry.getBounds();
+    //if (!bound.intersected(region)) return false;
+    //if (region.contained(bound)) return true;
+    return sdata->geometry.intersects(region);
 }
 
 

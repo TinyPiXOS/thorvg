@@ -25,6 +25,137 @@
 #include "tvgGlTessellator.h"
 #include "tvgGlRenderTask.h"
 
+#if 1
+bool GlGeometry::intersects(const RenderRegion& region) const
+{
+    if (region.min.x < 0 || region.min.y < 0) return false;
+
+    Matrix im;
+    if (!inverse(&matrix, &im)) return false;
+    auto v = Point{(float)region.min.x, (float)region.min.y} * im;
+
+    auto hit = [&](const float* pt1, const float* pt2, const float* pt3, const Point& pt) -> bool {
+        Point v0 = {pt3[0] - pt1[0], pt3[1] - pt1[1]};
+        Point v1 = {pt2[0] - pt1[0], pt2[1] - pt1[1]};
+        Point v2 = {pt.x - pt1[0], pt.y - pt1[1]};
+
+        // Compute dot products
+        auto dot00 = tvg::dot(v0, v0);
+        auto dot01 = tvg::dot(v0, v1);
+        auto dot02 = tvg::dot(v0, v2);
+        auto dot11 = tvg::dot(v1, v1);
+        auto dot12 = tvg::dot(v1, v2);
+
+        // Compute barycentric coordinates
+        auto denom = dot00 * dot11 - dot01 * dot01;
+        if (tvg::zero(denom)) return false; // Degenerate triangle
+
+        auto idenom = 1.0f / denom;
+        auto u = (dot11 * dot02 - dot01 * dot12) * idenom;
+        auto v = (dot00 * dot12 - dot01 * dot02) * idenom;
+
+        // Check if point is in triangle
+        return (u >= 0.0f && v >= 0.0f && (u + v) <= 1.0f);
+    };
+
+    auto odd = false;  //even odd tessllation
+
+    //stroke
+    for (uint32_t i = 0; i < stroke.index.count; i += 3) {
+        if (hit(&stroke.vertex[stroke.index[i] * 2], &stroke.vertex[stroke.index[i + 1] * 2], &stroke.vertex[stroke.index[i + 2] * 2], v)) odd = !odd;
+    }
+    if (odd) return true;
+
+    //fill
+    odd = false;
+    for (uint32_t i = 0; i < fill.index.count; i += 3) {
+        if (hit(&fill.vertex[fill.index[i] * 2], &fill.vertex[fill.index[i + 1] * 2], &fill.vertex[fill.index[i + 2] * 2], v)) odd = !odd;
+    }
+    if (odd) return true;
+
+    return false;
+}
+#else
+bool GlGeometry::intersects(const RenderRegion& region) const
+{
+    Matrix im;
+    if (!inverse(&matrix, &im)) return false;
+
+    Point edge[4] = {
+        {(float)region.min.x, (float)region.min.y},
+        {(float)region.max.x, (float)region.min.y},
+        {(float)region.max.x, (float)region.max.y},
+        {(float)region.min.x, (float)region.max.y}
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        edge[i] *= im;
+    }
+
+    auto hit = [&](const float* pt1, const float* pt2, const float* pt3, const Point* edge) -> bool {
+
+        const Point poly[3] = {{pt1[0], pt1[1]}, {pt2[0], pt2[1]}, {pt3[0], pt3[1]}};
+
+        // projection of polygon onto axis
+        auto project = [&](const Point* poly, int count, const Point& axis, float& min, float& max) {
+            min = max = tvg::dot(poly[0], axis);
+            for (int i = 1; i < count; ++i) {
+                auto d = tvg::dot(poly[i], axis);
+                if (d < min) min = d;
+                else if (d > max) max = d;
+            }
+        };
+
+        // check overlap on axis
+        auto overlap = [&](const Point& axis) -> bool {
+            float minA, maxA, minB, maxB;
+            project(poly, 3, axis, minA, maxA);
+            project(edge, 4, axis, minB, maxB);
+            return !(maxA < minB || maxB < minA);
+        };
+
+        // polygon edge detection
+        for (int i = 0; i < 3; ++i) {
+            auto vedge = poly[(i + 1) % 3] - poly[i];
+            Point axis = {-vedge.y, vedge.x}; // normal vector
+            tvg::normalize(axis);
+            if (!overlap(axis)) return false;
+        }
+
+        // rect edge detection
+        auto r1 = edge[1] - edge[0];
+        auto r2 = edge[3] - edge[0];
+
+        Point axis1 = {-r1.y, r1.x};
+        tvg::normalize(axis1);
+
+        Point axis2 = {-r2.y, r2.x};
+        tvg::normalize(axis2);
+
+        if (!overlap(axis1)) return false;
+        if (!overlap(axis2)) return false;
+
+        return true;
+    };
+
+    auto odd = false;  //even odd tessllation
+
+    //stroke
+    for (uint32_t i = 0; i < stroke.index.count; i += 3) {
+        if (hit(&stroke.vertex[stroke.index[i] * 2], &stroke.vertex[stroke.index[i + 1] * 2], &stroke.vertex[stroke.index[i + 2] * 2], edge)) return true;
+    }
+    if (odd) return true;
+
+    //fill
+    odd = false;
+    for (uint32_t i = 0; i < fill.index.count; i += 3) {
+        if (hit(&fill.vertex[fill.index[i] * 2], &fill.vertex[fill.index[i + 1] * 2], &fill.vertex[fill.index[i + 2] * 2], edge)) return true;
+    }
+    if (odd) return true;
+
+    return false;
+}
+#endif
 
 bool GlGeometry::tesselate(const RenderShape& rshape, RenderUpdateFlag flag)
 {

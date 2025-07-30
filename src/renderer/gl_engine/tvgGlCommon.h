@@ -111,6 +111,7 @@ struct GlGeometry
     bool draw(GlRenderTask* task, GlStageBuffer* gpuBuffer, RenderUpdateFlag flag);
     GlStencilMode getStencilMode(RenderUpdateFlag flag);
     RenderRegion getBounds() const;
+    bool intersects(const RenderRegion& region) const;
 
     GlGeometryBuffer fill, stroke;
     Matrix matrix = {};
