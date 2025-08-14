@@ -153,6 +153,7 @@ void GlRenderer::initShaders()
     for (uint32_t i = 0; i < 17; i++) {
         mPrograms.push(nullptr); // slot for blend
         mPrograms.push(nullptr); // slot for gradient blend
+        mPrograms.push(nullptr); // slot for image blend
         mPrograms.push(nullptr); // slot for scene blend
     }
 }
@@ -249,7 +250,7 @@ void GlRenderer::drawPrimitive(GlShape& sdata, const RenderColor& c, RenderUpdat
     if (complexBlend) {
         auto task = new GlRenderTask(mPrograms[RT_Stencil]);
         sdata.geometry.draw(task, &mGpuBuffer, flag);
-        endBlendingCompose(task, sdata.geometry.matrix, false);
+        endBlendingCompose(task, sdata.geometry.matrix, false, false);
     }
 }
 
@@ -430,7 +431,7 @@ void GlRenderer::drawPrimitive(GlShape& sdata, const Fill* fill, RenderUpdateFla
     if (complexBlend) {
         auto task = new GlRenderTask(mPrograms[RT_Stencil]);
         sdata.geometry.draw(task, &mGpuBuffer, flag);
-        endBlendingCompose(task, sdata.geometry.matrix, true);
+        endBlendingCompose(task, sdata.geometry.matrix, true, false);
     }
 }
 
@@ -539,7 +540,7 @@ bool GlRenderer::beginComplexBlending(const RenderRegion& vp, RenderRegion bound
     return true;
 }
 
-void GlRenderer::endBlendingCompose(GlRenderTask* stencilTask, const Matrix& matrix, bool gradient)
+void GlRenderer::endBlendingCompose(GlRenderTask* stencilTask, const Matrix& matrix, bool gradient, bool image)
 {
     auto blendPass = mRenderPassStack.last();
     mRenderPassStack.pop();
@@ -570,7 +571,7 @@ void GlRenderer::endBlendingCompose(GlRenderTask* stencilTask, const Matrix& mat
         16 * sizeof(float),
     });
     
-    auto program = getBlendProgram(mBlendMethod, gradient, false);
+    auto program = getBlendProgram(mBlendMethod, gradient, image, false);
     auto task = new GlComplexBlendTask(program, currentPass()->getFbo(), dstCopyFbo, stencilTask, composeTask);
     prepareCmpTask(task, vp, blendPass->getFboWidth(), blendPass->getFboHeight());
     task->setDrawDepth(currentPass()->nextDrawDepth());
@@ -584,7 +585,7 @@ void GlRenderer::endBlendingCompose(GlRenderTask* stencilTask, const Matrix& mat
     delete(blendPass);
 }
 
-GlProgram* GlRenderer::getBlendProgram(BlendMethod method, bool gradient, bool scene) {
+GlProgram* GlRenderer::getBlendProgram(BlendMethod method, bool gradient, bool image, bool scene) {
     // custom blend shaders
     static const char* shaderFunc[17] {
         NORMAL_BLEND_FRAG,
@@ -623,6 +624,10 @@ GlProgram* GlRenderer::getBlendProgram(BlendMethod method, bool gradient, bool s
         startInd = (uint32_t)RenderTypes::RT_Blend_Gradient_Normal;
         shaderInd = methodInd + startInd;
         strcat(strcat(strcpy(fragShader, BLEND_GRADIENT_FRAG_HEADER), helpers), shaderFunc[methodInd]);
+    } else if (image) {
+        startInd = (uint32_t)RenderTypes::RT_Blend_Image_Normal;
+        shaderInd = methodInd + startInd;
+        strcat(strcat(strcpy(fragShader, BLEND_IMAGE_FRAG_HEADER), helpers), shaderFunc[methodInd]);
     } else if (scene) {
         vertShader = BLEND_SCENE_VERT_SHADER;
         startInd = (uint32_t)RenderTypes::RT_Blend_Scene_Normal;
@@ -754,7 +759,7 @@ void GlRenderer::endRenderPass(RenderCompositor* cmp)
             // image info
             uint32_t info[4] = {(uint32_t)ColorSpace::ABGR8888, 0, cmp->opacity, 0};
 
-            auto program = getBlendProgram(glCmp->blendMethod, false, true);
+            auto program = getBlendProgram(glCmp->blendMethod, false, false, true);
             auto task = renderPass->endRenderPass<GlSceneBlendTask>(program, currentPass()->getFboId());
             task->setDstCopy(dstCopyFbo);
             task->setRenderSize(glCmp->bbox.w(), glCmp->bbox.h());
@@ -1093,7 +1098,7 @@ bool GlRenderer::renderImage(void* data)
     if (complexBlend) {
         auto task = new GlRenderTask(mPrograms[RT_Stencil]);
         sdata->geometry.draw(task, &mGpuBuffer, RenderUpdateFlag::Image);
-        endBlendingCompose(task, sdata->geometry.matrix, false);
+        endBlendingCompose(task, sdata->geometry.matrix, false, true);
     }
 
     return true;
