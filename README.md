@@ -2,82 +2,19 @@
 
 ThorVG是一个开源图形库，专为创建基于矢量的场景和动画而设计。它兼具强大的功能和出色的轻量级效率，因为“Thor”一词具有双重含义——既象征着雷鸣般的强大力量，又象征着闪电般的敏捷。秉承“简单即更好”的理念，ThorVG项目提供了直观、用户友好的界面，同时保持了紧凑的占用空间和最小的开销。 
 
-[](#contents)
-<br />
-## Installation
-This section details the steps required to configure the environment for installing ThorVG.<br />
-<br />
-### Build and Install
-ThorVG supports [meson](https://mesonbuild.com/) build system. Install [meson](http://mesonbuild.com/Getting-meson.html) and [ninja](https://ninja-build.org/) if you don't have them already.
-
-Run meson to configure ThorVG in the thorvg root folder.
+## 构建安装步骤
 
 ```bash
-meson setup builddir -Dloaders="all" -Dsavers="all" -Dexamples=false -Dlog="false"
-```
-
-Run ninja to build & install ThorVG:
-
-```bash
+meson setup builddir -Dloaders="all" -Dsavers="all" -Dexamples=false -Dlog="false" --default-library=static --prefix=$(pwd)/install  
 ninja -C builddir install
 ```
 
-Regardless of the installation, all build results (symbols, executable) are generated in the builddir folder in thorvg. Some results such as examples won't be installed, you can check More examples section to see how to change it. <br/>
-​<br/>
-Note that some systems might include ThorVG package as a default component. In that case, you can skip this manual installation.</br>
+## 集成
 
-### Build with Visual Studio
-If you want to create Visual Studio project files, use the command --backend=vs. The resulting solution file (thorvg.sln) will be located in the build folder.
-```
-meson setup builddir --backend=vs
-```
+将/install目录下的头文件与动态库拷贝至集成目录即可
 
-### Install with vcpkg
-You can download and install pre-packaged ThorVG using the [vcpkg](https://vcpkg.io/en/index.html) package manager.
+## 使用示例
 
-Clone the vcpkg repo. Make sure you are in the directory you want the tool installed to before doing this.
-```
-git clone https://github.com/Microsoft/vcpkg.git
-```
-Run the bootstrap script to build the vcpkg.
-```
-./bootstrap-vcpkg.sh
-```
-Install the ThorVG package.
-```
-./vcpkg install thorvg
-```
-
-### Install with Conan
-You can download and install pre-packaged ThorVG using the [Conan](https://conan.io/) package manager.
-
-Follow the instructions on [this page on how to set up Conan](https://conan.io/downloads).
-
-Install the ThorVG package:
-
-```
-conan install --requires="thorvg/[*]" --build=missing
-```
-
-### Install with MSYS2
-You can download and install pre-packaged ThorVG using the [MSYS2](https://www.msys2.org/) package manager.
-
-Download and execute the MSYS2 installer on the web page above and follow the steps. When done, just launch one of the terminals in the start menu, according to the architecture and compiler you want (either 32 or 64 bits, with MSVCRT or UCRT library). Then you can install the ThorVG package :
-
-```
-pacman -S thorvg
-```
-
-To update to a newer release (and update all the packages, which is preferable), run :
-
-```
-pacman -Syu
-```
-
-[Back to contents](#contents)
-<br />
-<br />
-## Quick Start
 ThorVG renders vector shapes to a given canvas buffer. The following is a quick start to show you how to use the essential APIs.
 
 First, you should initialize the ThorVG engine:

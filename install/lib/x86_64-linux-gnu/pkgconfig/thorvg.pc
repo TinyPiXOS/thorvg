@@ -1,0 +1,10 @@
+prefix=/home/hawk/Public/thorvg/install
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: libthorvg
+Description: A Thor library for rendering vector graphics
+Version: 1.0.0
+Requires: libpng
+Libs: -L${libdir} -lthorvg -fopenmp -lpthread
+Cflags: -I${includedir} -DTHORVG_SW_OPENMP_SUPPORT=1 -fopenmp
