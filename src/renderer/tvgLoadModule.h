@@ -90,10 +90,9 @@ struct LoadModule
 
 struct ImageLoader : LoadModule
 {
-    static atomic<ColorSpace> cs;                   //desired value
-
-    float w = 0, h = 0;                             //default image size
     RenderSurface surface;
+    float w = 0, h = 0;                        //default image size
+    ColorSpace cs = ColorSpace::ABGR8888;      //desired value
 
     ImageLoader(FileType type) : LoadModule(type) {}
 
